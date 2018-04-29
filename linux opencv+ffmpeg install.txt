@@ -1,0 +1,32 @@
+1、获得ffmpeg：
+   下载ffmpeg-2.7.7  (这个版本问题折腾好久，自己尝试的，版本不匹配的话，opencv2.3.14 make时会报错！！！！安装新版本之前，一定要把旧版本卸掉)
+
+2、配置ffmpeg,进入ffmpeg目录，
+
+  2.1 ./configure --enable-shared  --prefix=/usr 
+
+  2.2 make    (注意：如果编译FFMPEG时，出现了 ffmpeg yasm not found, use --disable-yasm for a crippled build； sudo apt-get install yasm )
+
+  2.3 make install
+
+
+3、接下来要做的工作就是关系到opencv能否成功将ffmpeg的相关头文件编译进来的问题了：
+
+3.1）、在/usr/include下执行以下命令（root）：
+
+       mkdir ffmpeg;
+3.2）  在ffmepeg-2.7.7目录下
+       cp -rf libav* libsw*  usr/include/ffmpeg;  //之所以这么做，是因为opencv configure时检查是否已安装ffmpeg是在这检查的
+	   
+	   ffmpeg  测试下是否成功安装
+
+4.安装opencv2.4.13
+  4.1 opencv sources/目录下 
+      cmake CMakeLists.txt  //如果以上步骤都没错的话，可以看到  opencv的configure结果中ffmpeg为YES，说明我们成功了。
+      sudo make install
+
+5、将/usr/local/lib/pkgconfig下的opencv.pc cp到/usr/lib/pkgconfig下，这一步也可以做，只是一个配置文件，大不了编译时自己指定头文件和库么，其实你打开opencv.pc一看就知道是什么玩意了。
+
+6、root下， vim /etc/ld.so.conf, 增加一行， /usr/local/lib (因为opencv的库文件在local,默认情况下local/lib中的库文件是不在系统启动时被load的)
+
+7、ldconfig
