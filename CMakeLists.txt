@@ -1,0 +1,165 @@
+cmake_minimum_required(VERSION 3.0.2)
+
+#project name  
+PROJECT(iface_xc_sdk)
+#set(CMAKE_FIND_ROOT_PATH_MODE_LIBRARY ONLY)
+SET(LIBRARY_IFACESDK_PATH /home/batia/git/xc3288simu_sync/alg/3rdParty/armeabi-v7a/lib)
+SET(LIBRARY_OPENCV_PATH /home/batia/git/xc3288simu_sync/opencv)
+SET(LIBRARY_FFMPEG_PATH /home/batia/git/xc3288simu_sync/ffmpeg/lib)
+#SET(CMAKE_INSTALL_PREFIX ${TUNA_ROOT}/lib)
+
+
+SET(CMAKE_C_COMPILER /usr/bin/arm-linux-gnueabihf-gcc)
+SET(CMAKE_CXX_COMPILER /usr/bin/arm-linux-gnueabihf-g++)
+MESSAGE(STATUS ${CMAKE_C_COMPILER} " found")
+MESSAGE(STATUS ${CMAKE_CXX_COMPILER} " /found")
+set(CMAKE_C_FLAGS "-O3 -Wall -mfpu=neon -ftree-vectorize -fsigned-char -marm -fopenmp -mfloat-abi=hard  -march=armv7-a -Wno-format -Wformat=0 -fmessage-length=0 -lrt -lz -std=gnu++11 -D__STDC_FORMAT_MACROS -D__arm__")
+#set(CMAKE_C_FLAGS "-O3 -Wall -fsigned-char -march=armv7-a -ftree-vectorize -mfloat-abi=hard -mfpu=neon -std=gnu++11")-mfpu=vfpv3
+set(CMAKE_CXX_FLAGS ${CMAKE_C_FLAGS})
+
+#environment variables 
+#if(CPU_ONLY)
+#add_definitions(-DCPU_ONLY=1)
+#endif()
+  
+#head file path  
+INCLUDE_DIRECTORIES(.)
+INCLUDE_DIRECTORIES(./ctrl)
+INCLUDE_DIRECTORIES(./alg/lk_track)
+INCLUDE_DIRECTORIES(./alg/cnn)
+INCLUDE_DIRECTORIES(./alg/mtcnn)
+INCLUDE_DIRECTORIES(./alg/age)
+INCLUDE_DIRECTORIES(./alg/gender)
+INCLUDE_DIRECTORIES(./alg/quality_pose)
+INCLUDE_DIRECTORIES(./alg/feature_extract)
+INCLUDE_DIRECTORIES(./alg/face_attribute)
+INCLUDE_DIRECTORIES(./service/)
+INCLUDE_DIRECTORIES(./include/)
+INCLUDE_DIRECTORIES(./alg/3rdParty/armeabi-v7a/include/)
+INCLUDE_DIRECTORIES(./ffmpeg/include/libavcodec)
+INCLUDE_DIRECTORIES(./ffmpeg/include/libavformat)
+INCLUDE_DIRECTORIES(./ffmpeg/include/libswscale)
+
+
+#source directory  
+AUX_SOURCE_DIRECTORY(. MAIN)
+AUX_SOURCE_DIRECTORY(alg/quality_pose/quality_model/ QUALITY_MODEL_SRCS)
+AUX_SOURCE_DIRECTORY(alg/quality_pose/ QUALITY_SRCS)
+AUX_SOURCE_DIRECTORY(alg/mtcnn/ MTCNN_SRCS)
+AUX_SOURCE_DIRECTORY(alg/cnn/ CNN_SRCS)
+AUX_SOURCE_DIRECTORY(alg/mtcnn/model MTCNN_MODEL_SRCS)
+AUX_SOURCE_DIRECTORY(ctrl CTRL_SRCS)
+AUX_SOURCE_DIRECTORY(alg/lk_track/ LK_TRCAK_SRCS)
+AUX_SOURCE_DIRECTORY(alg/age/ AGE_SRCS)
+AUX_SOURCE_DIRECTORY(alg/gender/ GENDER_SRCS)
+AUX_SOURCE_DIRECTORY(alg/feature_extract/ FE_SRCS)
+AUX_SOURCE_DIRECTORY(alg/feature_extract/feat_fmodel FEAT_F_SRCS)
+AUX_SOURCE_DIRECTORY(alg/feature_extract/feat_model FEAT_SRCS)
+AUX_SOURCE_DIRECTORY(service/ SERVICE_SRCS)
+AUX_SOURCE_DIRECTORY(alg/face_attribute FACE_ATT_SRCS)
+AUX_SOURCE_DIRECTORY(alg/face_attribute/age OPT_AGE_SRCS)
+AUX_SOURCE_DIRECTORY(alg/face_attribute/gender OPT_GENDER_SRCS)
+
+#link library path
+#LINK_DIRECTORIES(./opencv)
+LINK_DIRECTORIES(./lib_all)
+
+ADD_EXECUTABLE(iface_xc_sdk ${MAIN} ${FEAT_F_SRCS} ${FEAT_SRCS} ${OPT_GENDER_SRCS} ${OPT_AGE_SRCS} ${FACE_ATT_SRCS} ${QUALITY_MODEL_SRCS} ${QUALITY_SRCS} ${MTCNN_SRCS} ${CNN_SRCS} ${MTCNN_MODEL_SRCS} ${CTRL_SRCS} ${LK_TRCAK_SRCS} ${AGE_SRCS} ${GENDER_SRCS} ${FE_SRCS} ${SERVICE_SRCS} )
+
+
+FIND_LIBRARY(LIB_AVFORMAT_PATH avformat ${LIBRARY_FFMPEG_PATH} NO_DEFAULT_PATH)
+IF(NOT LIB_AVFORMAT_PATH)
+MESSAGE(FATAL_ERROR "avformat not found")
+ENDIF(NOT LIB_AVFORMAT_PATH) 
+MESSAGE(STATUS ${LIB_AVFORMAT_PATH} " found")
+TARGET_LINK_LIBRARIES(iface_xc_sdk ${LIB_AVFORMAT_PATH})
+
+FIND_LIBRARY(LIB_AVCODEC_PATH avcodec ${LIBRARY_FFMPEG_PATH} NO_DEFAULT_PATH)
+IF(NOT LIB_AVCODEC_PATH)
+MESSAGE(FATAL_ERROR "avcodec not found")
+ENDIF(NOT LIB_AVCODEC_PATH) 
+MESSAGE(STATUS ${LIB_AVCODEC_PATH} " found")
+TARGET_LINK_LIBRARIES(iface_xc_sdk ${LIB_AVCODEC_PATH})
+
+FIND_LIBRARY(LIB_SWSCALE_PATH swscale ${LIBRARY_FFMPEG_PATH} NO_DEFAULT_PATH)
+IF(NOT LIB_SWSCALE_PATH)
+MESSAGE(FATAL_ERROR "swscale not found")
+ENDIF(NOT LIB_SWSCALE_PATH) 
+MESSAGE(STATUS ${LIB_SWSCALE_PATH} " found")
+TARGET_LINK_LIBRARIES(iface_xc_sdk ${LIB_SWSCALE_PATH})
+
+FIND_LIBRARY(LIB_AVUTIL_PATH avutil ${LIBRARY_FFMPEG_PATH} NO_DEFAULT_PATH)
+IF(NOT LIB_AVUTIL_PATH)
+MESSAGE(FATAL_ERROR "avutil not found")
+ENDIF(NOT LIB_AVUTIL_PATH) 
+MESSAGE(STATUS ${LIB_AVUTIL_PATH} " found")
+TARGET_LINK_LIBRARIES(iface_xc_sdk ${LIB_AVUTIL_PATH})
+
+FIND_LIBRARY(LIB_IFACERECSDK_PATH IFaceRecSDK ${LIBRARY_IFACESDK_PATH} NO_DEFAULT_PATH)
+IF(NOT LIB_IFACERECSDK_PATH)
+MESSAGE(FATAL_ERROR "IFACERECSDK not found")
+ENDIF(NOT LIB_IFACERECSDK_PATH) 
+MESSAGE(STATUS ${LIB_IFACERECSDK_PATH} " found")
+TARGET_LINK_LIBRARIES(iface_xc_sdk ${LIB_IFACERECSDK_PATH})
+
+FIND_LIBRARY(LIB_OPENCV_CORE_PATH opencv_core ${LIBRARY_OPENCV_PATH} NO_DEFAULT_PATH)
+IF(NOT LIB_OPENCV_CORE_PATH)
+MESSAGE(FATAL_ERROR "opencv_imgproc not found")
+ENDIF(NOT LIB_OPENCV_CORE_PATH) 
+MESSAGE(STATUS ${LIB_OPENCV_CORE_PATH} " found")
+TARGET_LINK_LIBRARIES(iface_xc_sdk ${LIB_OPENCV_CORE_PATH})
+
+FIND_LIBRARY(LIB_OPENCV_IMGPROC_PATH opencv_imgproc ${LIBRARY_OPENCV_PATH} NO_DEFAULT_PATH)
+IF(NOT LIB_OPENCV_IMGPROC_PATH)
+MESSAGE(FATAL_ERROR "opencv_imgproc not found")
+ENDIF(NOT LIB_OPENCV_IMGPROC_PATH) 
+MESSAGE(STATUS ${LIB_OPENCV_IMGPROC_PATH} " found")
+TARGET_LINK_LIBRARIES(iface_xc_sdk ${LIB_OPENCV_IMGPROC_PATH})
+
+FIND_LIBRARY(LIB_OPENCV_HIGHGUI_PATH opencv_highgui ${LIBRARY_OPENCV_PATH} NO_DEFAULT_PATH)
+IF(NOT LIB_OPENCV_HIGHGUI_PATH)
+MESSAGE(FATAL_ERROR "opencv_highgui not found")
+ENDIF(NOT LIB_OPENCV_HIGHGUI_PATH) 
+MESSAGE(STATUS ${LIB_OPENCV_HIGHGUI_PATH} " found")
+TARGET_LINK_LIBRARIES(iface_xc_sdk ${LIB_OPENCV_HIGHGUI_PATH})
+
+
+
+
+#add executable file  
+#ADD_EXECUTABLE(../bin/bin ${TEST_MATH})
+#add_library(TestEagleCase SHARED ${SOURCE})
+
+
+#find_library(LIBHELLO_PATH hello /tmp/lib)
+
+#target_link_libraries(TestTrackCase ${OpenCV_LIBS})
+
+
+#TARGET_LINK_LIBRARIES(TestEagleCase pthread)
+# TARGET_LINK_LIBRARIES(iface_xc_sdk opencv_core)
+# TARGET_LINK_LIBRARIES(iface_xc_sdk opencv_imgproc)
+# TARGET_LINK_LIBRARIES(iface_xc_sdk opencv_highgui)
+# TARGET_LINK_LIBRARIES(iface_xc_sdk IFaceRecSDK)
+
+# TARGET_LINK_LIBRARIES(iface_xc_sdk avformat)
+# TARGET_LINK_LIBRARIES(iface_xc_sdk avcodec)
+# TARGET_LINK_LIBRARIES(iface_xc_sdk swscale)
+# TARGET_LINK_LIBRARIES(iface_xc_sdk avutil)
+
+
+
+
+#link files
+#set(LIB ${TUNA_ROOT}/face_alignment_sdm/obj/local/armeabi-v7a/libFaceAlignSdm.a)
+#LIST(APPEND LIB ${EXTERNAL_ROOT}/boost/lib/libboost_system.a)
+
+
+
+#TARGET_LINK_LIBRARIES(TestEagleCase ${LIB})
+                         
+
+#INSTALL(TARGETS TestEagleCase DESTINATION bin)
+
+
+
